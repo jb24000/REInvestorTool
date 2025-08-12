@@ -1,3 +1,5 @@
+New-Item -ItemType Directory -Force -Path "C:\Code\REInvestor\public\icons" | Out-Null
+@'
 {
   "name": "REI Deal Machine",
   "short_name": "REI Deals",
@@ -8,27 +10,12 @@
   "scope": "/REInvestorTool/",
   "start_url": "/REInvestorTool/",
   "icons": [
-    {
-      "src": "/REInvestorTool/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/REInvestorTool/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    },
-    {
-      "src": "/REInvestorTool/icons/maskable-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/REInvestorTool/icons/maskable-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
+    { "src": "%BASE_URL%icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "%BASE_URL%icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
   ]
 }
+'@ | Set-Content -Path "C:\Code\REInvestor\public\manifest.json" -Encoding UTF8
+
+# tiny placeholder icons so build doesn't 404 (replace later with real PNGs)
+Set-Content -Path "C:\Code\REInvestor\public\icons\icon-192.png" -Value ($null) -Encoding Byte
+Set-Content -Path "C:\Code\REInvestor\public\icons\icon-512.png" -Value ($null) -Encoding Byte
