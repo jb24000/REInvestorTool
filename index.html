@@ -1,3 +1,4 @@
+# Overwrite index.html with a clean, valid version
 @'
 <!DOCTYPE html>
 <html lang="en">
@@ -8,7 +9,6 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <link rel="manifest" href="%BASE_URL%manifest.json" />
-    <link rel="apple-touch-icon" href="%BASE_URL%icons/icon-192.png" />
     <link rel="icon" href="%BASE_URL%icons/favicon-48.png" type="image/png" />
     <title>REI Deal Machine — Wholesale & SubTo</title>
   </head>
@@ -18,3 +18,6 @@
   </body>
 </html>
 '@ | Set-Content -Path "C:\Code\REInvestor\index.html" -Encoding UTF8
+
+# Sanity check (must print /src/main.jsx exactly once)
+Select-String -Path "C:\Code\REInvestor\index.html" -Pattern "/src/main.jsx"
