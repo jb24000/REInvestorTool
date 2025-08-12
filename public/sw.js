@@ -1,4 +1,5 @@
-const CACHE = 'rei-deal-machine-v1';
+// public/sw.js
+const CACHE = 'rei-deal-machine-v2'; // bump version to update clients
 
 self.addEventListener('install', (event) => {
   event.waitUntil(self.skipWaiting());
@@ -8,46 +9,44 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-// Network-first for navigations, cache-first for same-origin assets.
-// Critically: ignore non-http(s) like chrome-extension:// to avoid errors.
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Only handle GET over http/https
+  // Only handle same-origin, http(s), GET requests within this scope
   if (req.method !== 'GET') return;
   if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+  if (url.origin !== self.location.origin) return;
+  if (!url.pathname.startsWith(self.registration.scope.replace(self.location.origin, '') || '/')) return;
 
-  // Don’t attempt to cache cross-origin extensions, etc.
-  if (url.protocol === 'chrome-extension:' || url.origin.startsWith('chrome-extension://')) return;
-
-  // For navigations, network-first
+  // Network-first for navigations
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req).then((r) => {
-        const copy = r.clone();
-        caches.open(CACHE).then((c) => c.put(url.pathname || '/', copy));
-        return r;
-      }).catch(() => caches.match(url.pathname || '/') || caches.match('/index.html'))
+      fetch(req)
+        .then((r) => {
+          const copy = r.clone();
+          return caches.open(CACHE).then((c) =>
+            // cache the app shell path only; ignore failures
+            c.put(self.registration.scope, copy).catch(() => r)
+          ).then(() => r);
+        })
+        .catch(() => caches.match(self.registration.scope) || caches.match('/index.html'))
     );
     return;
   }
 
-  // For same-origin assets, cache-first
-  const sameOrigin = url.origin === self.location.origin;
-  if (sameOrigin) {
-    event.respondWith(
-      caches.match(req).then((hit) => {
-        if (hit) return hit;
-        return fetch(req).then((r) => {
-          const copy = r.clone();
-          // Only cache successful, basic responses
-          if (r.ok && r.type === 'basic') {
-            caches.open(CACHE).then((c) => c.put(req, copy));
-          }
-          return r;
-        });
-      })
-    );
-  }
+  // Cache-first for same-origin assets
+  event.respondWith(
+    caches.match(req).then((hit) => {
+      if (hit) return hit;
+      return fetch(req).then((r) => {
+        const copy = r.clone();
+        // Only cache successful basic responses; ignore any errors
+        if (r.ok && r.type === 'basic') {
+          caches.open(CACHE).then((c) => c.put(req, copy).catch(() => {}));
+        }
+        return r;
+      });
+    })
+  );
 });
