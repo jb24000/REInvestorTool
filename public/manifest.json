@@ -1,8 +1,6 @@
-@'
 {
   "name": "REI Deal Machine",
   "short_name": "REI Deals",
-  "description": "Target, analyze, and contract wholesale & sub-to deals.",
   "theme_color": "#0ea5e9",
   "background_color": "#ffffff",
   "display": "standalone",
@@ -13,4 +11,3 @@
     { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
   ]
 }
-'@ | Set-Content -Path "C:\Code\REInvestor\public\manifest.json" -Encoding UTF8
