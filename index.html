@@ -1,5 +1,3 @@
-# Overwrite index.html with a clean, valid version
-@'
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -12,12 +10,8 @@
     <link rel="icon" href="%BASE_URL%icons/favicon-48.png" type="image/png" />
     <title>REI Deal Machine — Wholesale & SubTo</title>
   </head>
-  <body>
+  <body class="min-h-screen bg-gray-50">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
-'@ | Set-Content -Path "C:\Code\REInvestor\index.html" -Encoding UTF8
-
-# Sanity check (must print /src/main.jsx exactly once)
-Select-String -Path "C:\Code\REInvestor\index.html" -Pattern "/src/main.jsx"
