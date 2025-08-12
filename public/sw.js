@@ -1,36 +1,53 @@
 const CACHE = 'rei-deal-machine-v1';
-const BASE = self.registration.scope; // e.g., https://jb24000.github.io/REInvestorTool/
-const ASSETS = [ BASE, BASE + 'index.html' ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(self.skipWaiting())
-  );
+  event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.map(k => (k !== CACHE ? caches.delete(k) : null)))).then(() => self.clients.claim())
-  );
+  event.waitUntil(self.clients.claim());
 });
 
+// Network-first for navigations, cache-first for same-origin assets.
+// Critically: ignore non-http(s) like chrome-extension:// to avoid errors.
 self.addEventListener('fetch', (event) => {
   const req = event.request;
+  const url = new URL(req.url);
+
+  // Only handle GET over http/https
+  if (req.method !== 'GET') return;
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+
+  // Don’t attempt to cache cross-origin extensions, etc.
+  if (url.protocol === 'chrome-extension:' || url.origin.startsWith('chrome-extension://')) return;
+
+  // For navigations, network-first
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req).then(r => {
+      fetch(req).then((r) => {
         const copy = r.clone();
-        caches.open(CACHE).then(c => c.put(BASE, copy));
+        caches.open(CACHE).then((c) => c.put(url.pathname || '/', copy));
         return r;
-      }).catch(() => caches.match(BASE) || caches.match(BASE + 'index.html'))
+      }).catch(() => caches.match(url.pathname || '/') || caches.match('/index.html'))
     );
     return;
   }
-  event.respondWith(
-    caches.match(req).then(cached => cached || fetch(req).then(r => {
-      const copy = r.clone();
-      caches.open(CACHE).then(c => c.put(req, copy));
-      return r;
-    }))
-  );
+
+  // For same-origin assets, cache-first
+  const sameOrigin = url.origin === self.location.origin;
+  if (sameOrigin) {
+    event.respondWith(
+      caches.match(req).then((hit) => {
+        if (hit) return hit;
+        return fetch(req).then((r) => {
+          const copy = r.clone();
+          // Only cache successful, basic responses
+          if (r.ok && r.type === 'basic') {
+            caches.open(CACHE).then((c) => c.put(req, copy));
+          }
+          return r;
+        });
+      })
+    );
+  }
 });
