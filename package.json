@@ -1,8 +1,14 @@
 {
-  "name": "rei-deal-machine",
+  "name": "rei-investor-tool",
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jb24000/REInvestorTool.git"
+  },
+  "author": "jb24000",
+  "homepage": "https://github.com/jb24000/REInvestorTool#readme",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
